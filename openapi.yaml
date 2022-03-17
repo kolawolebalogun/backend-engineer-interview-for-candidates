@@ -109,10 +109,40 @@ paths:
           application/json:
             schema:
               type: object
+              # required: [first_name, last_name]
               properties:
                 first_name:
                   type: string
                 last_name:
                   type: string
-
-      
+  /application:
+    post:
+      tags:
+        - Test Application Endpoints
+      summary: Create a single employee
+      operationId: backend_engineer_interview.handlers.post_application
+      responses:
+        "200":
+          description: Successfully created employee
+        "400":
+          description: "Bad request"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              # required: [leave_start_date, leave_end_date, employee_id]
+              properties:
+                leave_start_date:
+                  type: string
+                leave_end_date:
+                  type: string
+                employee_id:
+                  type: integer

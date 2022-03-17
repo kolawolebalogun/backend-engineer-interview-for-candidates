@@ -1,5 +1,7 @@
 from datetime import date, timedelta
+
 from freezegun import freeze_time  # type: ignore
+
 from backend_engineer_interview import __version__
 from backend_engineer_interview.handlers import split_start_end_dates
 
@@ -95,15 +97,18 @@ class TestPatchEmployee:
 
     def test_patch_employee_endpoint_404(self, test_client):
         response = test_client.patch(
-            "/v1/employee/99", json={"first_name": "Ringo", "last_name": "Starr"}
+            "/v1/employee/99",
+            json={"first_name": "Ringo", "last_name": "Starr"}
         )
         assert response.status_code == 404
         assert response.get_json()["message"] == "No such employee"
 
     def test_patch_employee_invalid(self, test_client):
-        patch_response = test_client.patch("/v1/employee/10", json={"last_name": ""})
+        patch_response = test_client.patch("/v1/employee/10",
+                                           json={"last_name": ""})
         assert patch_response.status_code == 400
-        assert patch_response.get_json()["message"] == "last_name cannot be blank"
+        assert patch_response.get_json()[
+                   "message"] == "last_name cannot be blank"
 
 
 class TestPostApplication:
@@ -132,8 +137,50 @@ class TestPostApplication:
         )
         assert application_response.status_code == 400
         assert (
-            application_response.get_json()["message"]
-            == "leave_start_date is missing;leave_end_date is missing"
+                application_response.get_json()["message"]
+                == "leave_start_date is missing;leave_end_date is missing"
+        )
+
+    def test_post_application_404(self, test_client):
+        application_response = test_client.post(
+            "/v1/application",
+            json={
+                "leave_start_date": "2021-01-01",
+                "leave_end_date": "2021-02-01",
+                "employee_id": 99,
+            },
+        )
+        assert application_response.status_code == 404
+        assert application_response.get_json()["message"] == "No such employee"
+
+    def test_post_application_invalid_date(self, test_client):
+        application_response = test_client.post(
+            "/v1/application",
+            json={
+                "leave_start_date": "2021-16-03",
+                "leave_end_date": "2021-02-01",
+                "employee_id": 1,
+            },
+        )
+        assert application_response.status_code == 400
+        assert (
+                application_response.get_json()["message"]
+                == "leave_start_date is invalid;leave_end_date is invalid"
+        )
+
+    def test_post_application_invalid_date_range(self, test_client):
+        application_response = test_client.post(
+            "/v1/application",
+            json={
+                "leave_start_date": "2021-01-03",
+                "leave_end_date": "2021-01-01",
+                "employee_id": 1,
+            },
+        )
+        assert application_response.status_code == 400
+        assert (
+                application_response.get_json()["message"]
+                == "leave_end_date cannot be before leave_start_date"
         )
 
 
